@@ -36,7 +36,7 @@ val acceptEncoding : { header : string, offers : string list } -> string option
 val acceptLanguage : { header : string, offers : string list } -> string option
 ```
 
-## Example
+## Usage example
 
 ```sml
 (* json (implicit q=1) beats html (q=0.8) *)
@@ -50,6 +50,31 @@ val SOME "gzip" =
 
 val SOME "en-US" =
   Negotiate.acceptLanguage { header = "en", offers = ["fr", "en-US"] }
+```
+
+## Example
+
+`make example` builds and runs [`examples/demo.sml`](examples/demo.sml), which
+parses a weighted Accept header and runs `acceptMedia`, `acceptEncoding`
+(showing the implicit `identity` rule overridden by an explicit `q=0`), and
+`acceptLanguage` (RFC 4647 prefix matching) against sample server offers
+(output is byte-identical under MLton and Poly/ML):
+
+```
+parse "text/html;q=0.8, application/json, image/*;q=0.5":
+  text/html  (q=0.8)
+  application/json  (q=1.0)
+  image/*  (q=0.5)
+
+acceptMedia: wildcard preferences vs. server offers:
+  chosen = text/html
+
+acceptEncoding: identity implicit unless explicitly q=0:
+  identity disabled, gzip offered -> gzip
+  identity disabled, only identity offered -> (none)
+
+acceptLanguage: RFC 4647 prefix matching ("en" ~ "en-US"):
+  chosen = en-US
 ```
 
 ## Build
